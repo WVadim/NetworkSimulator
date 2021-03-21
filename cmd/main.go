@@ -6,6 +6,7 @@ import (
 	"log"
 	"path"
 	"rlcache/internal/constants"
+	"rlcache/internal/statcollector"
 	"rlcache/internal/tsvreader"
 )
 
@@ -17,13 +18,18 @@ func main() {
 	}
 
 	reader := tsvreader.NewTSVReader(&tsvreader.DefaultTSVReaderConfig)
+	collector := statcollector.NewStatisticsCollector()
 
 	for i, f := range files {
-		_, err := reader.Parse(path.Join(dirname, f.Name()))
+		lines, err := reader.Parse(path.Join(dirname, f.Name()))
 		if err != nil {
 			return
 		}
+
+		collector.UpdateFile(lines)
+
 		fmt.Printf("Done %s out of %s files\n", constants.MakeBoldInt(i), constants.MakeBoldInt(len(files)))
+
 	}
 
 	//for _, line := range lines {

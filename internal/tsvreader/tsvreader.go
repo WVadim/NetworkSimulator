@@ -10,22 +10,22 @@ import (
 )
 
 type TSVReaderConfig struct {
-	NamesMap map[int]string
+	NamesMap []string
 }
 
 type TSVString map[string]string
 
 var DefaultTSVReaderConfig = TSVReaderConfig{
-	NamesMap: map[int]string{
-		0: "timestamp",
-		1: "data_id",
-		2: "size",
-		3: "read_bytes",
+	NamesMap: []string{
+		"timestamp",
+		"data_id",
+		"size",
+		"read_bytes",
 	},
 }
 
 type TSVReader struct {
-	NamesMap map[int]string
+	NamesMap []string
 }
 
 func NewTSVReader(config *TSVReaderConfig) *TSVReader {
@@ -47,9 +47,16 @@ func (r *TSVReader) Parse(filename string) (result []TSVString, err error) {
 		line := scanner.Text()
 		splitLine := strings.Split(line, " ")
 		var newLine TSVString = make(map[string]string)
+
+		if len(r.NamesMap) != len(splitLine) {
+			log.Printf("Line %s has wrong length, skipping it", line)
+			continue
+		}
+
 		for i, val := range splitLine {
 			newLine[r.NamesMap[i]] = val
 		}
+
 		result = append(result, newLine)
 		linesRead += 1
 		if linesRead % 10000 == 0 {
